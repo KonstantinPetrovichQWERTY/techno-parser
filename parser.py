@@ -1,8 +1,8 @@
 from bs4 import BeautifulSoup
 import requests
-import csv
-import datetime
-import os
+import gspread
+import pandas as pd
+from datetime import datetime
 
 
 with open('links_DO_NOT_CHANGE_FILE_TITLE.txt', 'r') as f:
@@ -30,16 +30,17 @@ for page in links_list:
     if soup.find('div', class_='product-thumb'):
         for good in soup.find_all('div', class_='product-thumb'):
             title_img = title_caption = ''
-            if good.find('img', class_='img-responsive'):
-                title_img = good.find('img', class_='img-responsive').get('alt')
-            if good.find('div', class_='caption'):
-                elem = good.find('div', class_='caption')
-                title_caption = elem.find('a').text.strip()
-                href = elem.find('a').get('href')
-            if good.find('p', class_='price'):
-                price = good.find('p', class_='price').text.strip()
-            title = title_img if len(title_img) > len(title_caption) else title_caption
-            result.append([title, price, href])
+            
+            title_img = good.find('img', class_='img-responsive').get('alt')
+            title_caption = good.find('div', class_='caption').find('a').text.strip(' ."\t\n')
+
+            title = title_img if len(title_img) >= len(title_caption) else title_caption
+            
+            result.append({
+                "title": title,
+                "price": good.find('div', class_='caption').find('a').get('href'), 
+                "href": good.find('p', class_='price').text.strip((' ."\t\n')),
+            })
     else:
         print(f'Страница без товаров: {page}')
 
@@ -58,28 +59,13 @@ for page in links_list:
             if link not in links_list:
                 links_list.append(link)
 
+
+df = pd.DataFrame(result)
+
+gc = gspread.service_account(filename="creds.json")
+sh = gc.open("tehno37_parsing")
+worksheet = sh.add_worksheet(title=f"update_{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}", rows=df.shape[0]+100, cols=df.shape[1]+20)
+
+worksheet.update([df.columns.values.tolist()] + df.values.tolist())
+
 print("jopa")
-print(result)
-
-# field names 
-fields = ('Titile', 'Price', 'Link')
-
-# data rows of csv file 
-rows = result
-
-with open(f'parse.csv', 'w', encoding='utf-8', newline='') as f:
-	
-	# using csv.writer method from CSV package
-	write = csv.writer(f)
-	write.writerow(fields)
-	write.writerows(result)
-
-
-
-# структура 
-# |- .exe
-# |- ссылки_НЕ_МЕНЯТЬ_НАЗВАНИЕ.txt
-# |- парсы
-#    |- парс_1
-#    |- парс_2
-# TODO: сделать так чтобы окно exe не закрывалось после выполнения

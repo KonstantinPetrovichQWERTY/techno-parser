@@ -1,14 +1,9 @@
-import os
-import logging
-import time
+from parser.services.google_sheets_api_client import upload_dataFrame_to_sheet
 
-from dotenv import load_dotenv
 from bs4 import BeautifulSoup
 import requests
-import gspread
 import pandas as pd
-
-load_dotenv()
+import logging
 
 logging.basicConfig(
     level=logging.INFO,
@@ -34,7 +29,7 @@ def parse_catalog() -> pd.DataFrame:
         soup = BeautifulSoup(response.text, 'lxml')
 
         if response.status_code != requests.codes.ok:
-            logging.info(f'Проблема со страницой {page_href}./nКод ошибки: {response.status_code}')
+            logging.info(f'Problem with page {page_href}./nStatus_code: {response.status_code}')
             continue
 
         # Ищем блок с товарами
@@ -72,30 +67,17 @@ def parse_catalog() -> pd.DataFrame:
 
     return pd.DataFrame(data)
 
-def upload_dataFrame_to_sheet(dataFrame: pd.DataFrame) -> None:
-    gc = gspread.service_account(filename="creds.json")
-    sheet = gc.open("tehno37_parsing")
+def start_parsing_process() -> str:
+    if __name__ == "__main__":
+        logging.info('scheduled parsing')
+    else:
+        logging.info('pushed parsing')
 
-    all_worksheets = sheet.worksheets()
-    if len(all_worksheets) >= 185:
-        worksheet_to_delete = sheet.get_worksheet(index=1)
-        sheet.del_worksheet(worksheet=worksheet_to_delete)
-        
-        logging.info(f'worksheet {worksheet_to_delete} is deleted')
-
-    new_worksheet = sheet.add_worksheet(title=f"{time.asctime()}", rows=dataFrame.shape[0]+100, cols=26)
-    new_worksheet.update([dataFrame.columns.values.tolist()] + dataFrame.values.tolist())
-    return new_worksheet
-
-
-if __name__ == "__main__":
-    logging.info(f'run from terminal')
     data = parse_catalog()
     worksheet = upload_dataFrame_to_sheet(dataFrame=data)
     logging.info(f'new information uploaded to {worksheet}')
-    print("jopa", os.getenv('TELEGRAM_BOT_TOKEN'))
+    return 'Данные успешно обновлены'
 
-
-# Функционал бота:
-#   - запустить парсинг внепланово и получить ответ
-#   - добавить новые ссылки для товаров из новых категорий
+if __name__ == "__main__":
+    res = start_parsing_process()
+    print('jopa', res)

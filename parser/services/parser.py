@@ -76,7 +76,7 @@ def start_parsing_process() -> str:
     data = parse_catalog()
     worksheet = upload_dataFrame_to_sheet(dataFrame=data)
     logging.info(f'new information uploaded to {worksheet}')
-    return 'Данные успешно обновлены'
+    return 'Вы великомлепны. Данные успешно обновлены'
 
 if __name__ == "__main__":
     res = start_parsing_process()

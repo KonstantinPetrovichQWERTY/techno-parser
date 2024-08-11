@@ -57,7 +57,6 @@ async def update_handler(message: Message) -> None:
     await message.reply(start_parsing_process())
 
 
-
 @dp.message(Command('random_dog'))
 async def random_dog_handler(message: Message) -> None:
     url = 'https://random.dog/woof.json'
@@ -75,6 +74,7 @@ async def main() -> None:
     bot = Bot(token=TOKEN)
     await bot.delete_webhook(drop_pending_updates=True)
     await dp.start_polling(bot)
+
 
 if __name__ == "__main__":
     asyncio.run(main())

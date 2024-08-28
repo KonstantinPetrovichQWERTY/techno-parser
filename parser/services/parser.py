@@ -5,6 +5,12 @@ import requests
 import pandas as pd
 import logging
 
+
+HEADERS = {
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36',
+    'Referer': 'https://google.com',
+}
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s %(levelname)s %(message)s",
@@ -17,15 +23,10 @@ def parse_catalog() -> pd.DataFrame:
     with open('upgrade33_links.txt', 'r') as f:
         links_list = [line.strip() for line in f.readlines()]
 
-    headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36',
-        'Referer': 'https://google.com',
-    }
-
     data = list()
 
     for page_href in links_list:
-        response = requests.get(page_href, headers=headers)
+        response = requests.get(page_href, headers=HEADERS)
         soup = BeautifulSoup(response.text, 'lxml')
 
         if response.status_code != requests.codes.ok:
@@ -51,11 +52,10 @@ def parse_catalog() -> pd.DataFrame:
             logging.info(f'Страница без товаров: {page_href}')
 
         # Ищем другие категории
-        if soup.find('a', class_='catpr2'):
-            for tag in soup.find_all('a', class_='catpr2'):
-                link = tag.get('href')
-                if link not in links_list:
-                    links_list.append(link)
+        for tag in soup.find_all('a', class_='catpr2'):
+            link = tag.get('href')
+            if link not in links_list:
+                links_list.append(link)
 
         # Ищем блок со следующими страницами этой же категории
         if soup.find('ul', class_='pagination'):

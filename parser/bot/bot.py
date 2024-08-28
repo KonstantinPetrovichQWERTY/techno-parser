@@ -9,6 +9,10 @@ from aiogram import Bot, Dispatcher
 from aiogram.filters import CommandStart, Command
 from aiogram.types import Message, KeyboardButton, ReplyKeyboardMarkup
 
+
+COMMAND_COOLDOWN = 600
+TOKEN = getenv('TELEGRAM_BOT_TOKEN')
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s %(levelname)s %(message)s",
@@ -18,10 +22,6 @@ logging.basicConfig(
 )
 
 last_command_time = {}
-COMMAND_COOLDOWN = 600
-
-TOKEN = getenv('TELEGRAM_BOT_TOKEN')
-
 dp = Dispatcher()
 
 
@@ -35,7 +35,8 @@ async def command_start_handler(message: Message) -> None:
                                    resize_keyboard=True, 
                                    input_field_placeholder='не пишите тут ничего')
     
-    await message.answer(f'Привет, {message.from_user.full_name}!\nКоманда "/update" позволяет внепланово запустить парсер', reply_markup=keyboard)
+    await message.answer(f'Привет, {message.from_user.full_name}!\nКоманда "/update" позволяет внепланово запустить парсер',
+                          reply_markup=keyboard)
 
 
 @dp.message(Command('update'))
@@ -47,6 +48,7 @@ async def update_handler(message: Message) -> None:
 
     if user_id in last_command_time:
         elapsed_time = (current_time - last_command_time[user_id]).total_seconds()
+        
         if elapsed_time < COMMAND_COOLDOWN:
             remaining_time = COMMAND_COOLDOWN - elapsed_time
             await message.reply(f"А нееет. У меня перерыв на обед.\nПодожди {int(remaining_time // 60)} минут")

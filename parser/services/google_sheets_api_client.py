@@ -23,6 +23,9 @@ def upload_dataFrame_to_sheet(dataFrame: pd.DataFrame) -> None:
         
         logging.info(f'worksheet {worksheet_to_delete} is deleted')
 
-    new_worksheet = sheet.add_worksheet(title=f"{time.asctime()}", rows=dataFrame.shape[0]+100, cols=26)
+    new_worksheet = sheet.add_worksheet(title=f"{time.asctime()}", 
+                                        rows=dataFrame.shape[0]+100, 
+                                        cols=26)
+    
     new_worksheet.update([dataFrame.columns.values.tolist()] + dataFrame.values.tolist())
     return new_worksheet

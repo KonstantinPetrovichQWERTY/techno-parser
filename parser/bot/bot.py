@@ -1,6 +1,7 @@
 import asyncio
 import logging
 from os import getenv
+from dotenv import load_dotenv
 from datetime import datetime, timedelta
 
 import requests
@@ -9,6 +10,8 @@ from aiogram import Bot, Dispatcher
 from aiogram.filters import CommandStart, Command
 from aiogram.types import Message, KeyboardButton, ReplyKeyboardMarkup
 
+
+load_dotenv() 
 
 COMMAND_COOLDOWN = 600
 TOKEN = getenv('TELEGRAM_BOT_TOKEN')
